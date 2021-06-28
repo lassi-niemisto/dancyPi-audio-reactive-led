@@ -5,6 +5,7 @@ import numpy as np
 from scipy.ndimage.filters import gaussian_filter1d
 import config
 import microphone
+import audio_player
 import dsp
 import led
 import sys
@@ -187,11 +188,11 @@ mel_smoothing = dsp.ExpFilter(np.tile(1e-1, config.N_FFT_BINS),
                          alpha_decay=0.5, alpha_rise=0.99)
 volume = dsp.ExpFilter(config.MIN_VOLUME_THRESHOLD,
                        alpha_decay=0.02, alpha_rise=0.02)
-fft_window = np.hamming(int(config.MIC_RATE / config.FPS) * config.N_ROLLING_HISTORY)
+fft_window = np.hamming(config.AUDIO_FRAME_SIZE * config.N_ROLLING_HISTORY)
 prev_fps_update = time.time()
 
 
-def microphone_update(audio_samples):
+def audio_update(audio_samples):
     global y_roll, prev_rms, prev_exp, prev_fps_update
     # Normalize samples between 0 and 1
     y = audio_samples / 2.0**15
@@ -245,11 +246,8 @@ def microphone_update(audio_samples):
             print('FPS {:.0f} / {:.0f}'.format(fps, config.FPS))
 
 
-# Number of audio samples to read every time frame
-samples_per_frame = int(config.MIC_RATE / config.FPS)
-
 # Array containing the rolling audio sample window
-y_roll = np.random.rand(config.N_ROLLING_HISTORY, samples_per_frame) / 1e16
+y_roll = np.random.rand(config.N_ROLLING_HISTORY, config.AUDIO_FRAME_SIZE) / 1e16
 
 if sys.argv[1] == "spectrum":
         visualization_type = visualize_spectrum
@@ -310,16 +308,16 @@ if __name__ == '__main__':
         freq_label = pg.LabelItem('')
         # Frequency slider
         def freq_slider_change(tick):
-            minf = freq_slider.tickValue(0)**2.0 * (config.MIC_RATE / 2.0)
-            maxf = freq_slider.tickValue(1)**2.0 * (config.MIC_RATE / 2.0)
+            minf = freq_slider.tickValue(0)**2.0 * (config.AUDIO_RATE / 2.0)
+            maxf = freq_slider.tickValue(1)**2.0 * (config.AUDIO_RATE / 2.0)
             t = 'Frequency range: {:.0f} - {:.0f} Hz'.format(minf, maxf)
             freq_label.setText(t)
             config.MIN_FREQUENCY = minf
             config.MAX_FREQUENCY = maxf
             dsp.create_mel_bank()
         freq_slider = pg.TickSliderItem(orientation='bottom', allowAdd=False)
-        freq_slider.addTick((config.MIN_FREQUENCY / (config.MIC_RATE / 2.0))**0.5)
-        freq_slider.addTick((config.MAX_FREQUENCY / (config.MIC_RATE / 2.0))**0.5)
+        freq_slider.addTick((config.MIN_FREQUENCY / (config.AUDIO_RATE / 2.0))**0.5)
+        freq_slider.addTick((config.MAX_FREQUENCY / (config.AUDIO_RATE / 2.0))**0.5)
         freq_slider.tickMoveFinished = freq_slider_change
         freq_label.setText('Frequency range: {} - {} Hz'.format(
             config.MIN_FREQUENCY,
@@ -364,5 +362,8 @@ if __name__ == '__main__':
         layout.addItem(spectrum_label)
     # Initialize LEDs
     led.update()
-    # Start listening to live audio stream
-    microphone.start_stream(microphone_update)
+    # Start the audio stream
+    if config.AUDIO_PLAYER_MODE:
+        audio_player.start_stream(audio_update)
+    else:
+        microphone.start_stream(audio_update)

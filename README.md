@@ -74,7 +74,7 @@ DEVICE = 'pi'
 USE_GUI = False
 DISPLAY_FPS = False
 N_PIXELS = 144
-MIC_RATE = 48000
+AUDIO_RATE = 48000
 FPS = 50
 ```
 
@@ -274,7 +274,7 @@ The connections are:
 7. In [config.py](python/config.py):
   - Set `N_PIXELS` to the number of LEDs in your LED strip (must match `NUM_LEDS` in [ws2812_controller.ino](arduino/ws2812_controller/ws2812_controller.ino))
   - Set `UDP_IP` to the IP address of your ESP8266 (must match `ip` in [ws2812_controller.ino](arduino/ws2812_controller/ws2812_controller.ino))
-  - If needed, set `MIC_RATE` to your microphone sampling rate in Hz. Most of the time you will not need to change this.
+  - If needed, set `AUDIO_RATE` to your microphone sampling rate in Hz. Most of the time you will not need to change this.
 
 # Installation for Raspberry Pi
 If you encounter any problems running the visualization on a Raspberry Pi, please [open a new issue](https://github.com/scottlawsonbc/audio-reactive-led-strip/issues). Also, please consider opening an issue if you have any questions or suggestions for improving the installation process.

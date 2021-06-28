@@ -46,6 +46,9 @@ if DEVICE == 'blinkstick':
 USE_GUI = False
 """Whether or not to display a PyQtGraph GUI plot of visualization"""
 
+AUDIO_PLAYER_MODE = False
+"""False = Listen to microphone | True = Play music from file(s)"""
+
 DISPLAY_FPS = True
 """Whether to display the FPS when running (can reduce performance)"""
 
@@ -55,11 +58,26 @@ N_PIXELS = 144
 GAMMA_TABLE_PATH = os.path.join(os.path.dirname(__file__), 'gamma_table.npy')
 """Location of the gamma correction table"""
 
-MIC_RATE = 48000
-"""Sampling frequency of the microphone in Hz"""
+AUDIO_RATE = 48000
+"""Sampling frequency of the microphone or audio file in Hz"""
 
-FPS = 50
-"""Desired refresh rate of the visualization (frames per second)
+AUDIO_FILE_SCAN_PATH = '/home/pi'
+"""Path to scan audio files from (for player mode only)"""
+
+if AUDIO_PLAYER_MODE:
+    AUDIO_FRAME_SIZE = 1024
+    """How many audio samples are processed as a frame, defined by pyaudio/portaudio stream callback"""
+
+    FPS = int(AUDIO_RATE / AUDIO_FRAME_SIZE)
+    """Target FPS is automatically calculated"""
+else:
+    FPS = 50
+    """Target FPS, read more info below"""
+
+    AUDIO_FRAME_SIZE = int(AUDIO_RATE / FPS)
+    """Audio frame size is automatically calculated"""
+
+"""FPS = Desired refresh rate of the visualization (frames per second)
 
 FPS indicates the desired refresh rate, or frames-per-second, of the audio
 visualization. The actual refresh rate may be lower if the computer cannot keep
